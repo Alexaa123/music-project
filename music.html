@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Music</title>
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_671837_rr1631y4eweo2yb9.css">
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font: 14px/1.5
+        }
+        a {
+            text-decoration: none;
+            color: #444
+        }
+        li {
+            list-style: none;
+        }
+       html, body,.cover {
+            width: 100%;
+            height: 100%;           
+        }
+        .cover {
+            position: relative;
+            background: url(http://cloud.hunger-valley.com/17-9-22/87786461.jpg) center center no-repeat;
+            background-size: cover;
+            filter:blur(0px);
+        }
+        .music-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) ;
+            width: 340px;
+            color: #f06d6a;
+            background-color: rgba(255,255,255 ,0.8);
+
+        }
+        .clearfix{
+            content:"";
+            display: block;
+            clear:both;
+        }
+        .music-control {
+            float: left;
+            padding-top: 31px;
+            padding-left: 20px;
+            padding-right: 38px;
+        }
+        .iconfont{
+            font-size: 26px;
+            padding: 4px;
+        }
+        .music-info {
+            padding-top: 15px;
+        }
+        .progress {
+            position:relative;
+            padding-left: 22px;
+            padding-top: 12px;
+        }
+                    
+      .progress .constant-progress {
+          
+            height: 3px;
+            width: 260px;
+            border: 1px solid ;
+           
+       }
+       .progress {
+           width: 260px;
+       }
+       .change-progress {
+            position: absolute;
+            top: 12px;
+            height: 3px;
+            width: 260px;
+            border: 1px solid ;
+            background-color:  #f06d6a;
+       }
+       .music-time {
+            float: right;
+            padding-right: 55px;
+            padding-top: 7px;
+            height: 34px;
+
+        }
+
+
+
+    
+    
+    
+    
+    
+    </style>
+
+</head>
+<body>
+    <div class = 'cover'>
+        <div class ='music'>          
+           <div class = 'music-panel'>    
+               <div class = 'music-top flearfix'>       
+                   <div class = 'music-control'>
+                       <a href="" class= 'previous'><i class= 'iconfont icon-previous'></i></a>
+                       <a href="" class = 'play'><i class= 'iconfont icon-play'></i></a>
+                       <a href="" class = 'next'><i class= 'iconfont icon-next'></i></a>
+                     
+                   </div>
+                   <div class = 'music-info'>
+                       <h3 class = 'music-name'>my song</h3>
+                       <p class = 'music-author'>ruoyu</p>
+                   </div>
+                   </div>  
+                   <div class = 'progress'>
+                       <div class = 'constant-progress'></div>
+                       <div class= 'change-progress'></div>
+                   </div>
+                   <div class = 'music-time'>jint</div>              
+           </div>
+            <div class= music-list>
+                <li></li>
+                <li></li>            
+            </div>            
+        </div>
+    </div>
+
+    <script>
+
+        var currentIndex = 0
+        var audio = new Audio()
+        var musiclist = []
+        audio.autoplay = true
+        
+        getmusiclist(function(list){
+            musiclist = list
+           musicOnload(list[currentIndex])
+        })
+        function $(elector){
+             return document.querySelector(elector)
+        }
+
+        // audio.ontimeupdate = function(){
+        //     console.log(this.currentTime)   
+        //     $('.change-progress').style.width = ((this.currentTime/this.duration)*100 +'%')
+        //     var min = Math.floor((this.currentTime) / 60 ) + ''
+        //     var sec =  Math.floor((this.currentTime) % 60) +''
+        //     sec = sec.length ===2? sec : '0'+ sec
+        //     $('.music-time').innerText = min +':'+ sec    
+        // }
+        audio.onplay = function(){
+            clock = setInterval(function(){
+                $('.change-progress').style.width = ((audio.currentTime/audio.duration)*100 +'%')  
+                var min = Math.floor((audio.currentTime) / 60 ) + ''
+                var sec =  Math.floor((audio.currentTime) % 60) +''
+                sec = sec.length ===2? sec : '0'+ sec
+                $('.music-time').innerText = min +':'+ sec  
+
+            },1000)
+        }
+        audio.onpause = function(){
+            clearInterval(clock)
+
+            audio.onended = function(){
+                currentIndex = (++currentIndex) % musiclist.length
+                musicOnload(musiclist[currentIndex])
+            }
+
+
+        }
+        $('.play').onclick = function(e){
+            e.preventDefault()
+            if(audio.paused){
+               audio.play()
+                this.querySelector('.iconfont').classList.remove('icon-pause')
+                this.querySelector('.iconfont').classList.add('icon-play')
+            }
+            else{
+            audio.pause()
+            this.querySelector('.iconfont').classList.remove('icon-play')
+            this.querySelector('.iconfont').classList.add('icon-pause')
+            }}
+
+        $('.next').onclick = function(e){
+            e.preventDefault()
+            currentIndex = (++currentIndex) % musiclist.length
+            musicOnload(musiclist[currentIndex])
+
+        }
+        $('.progress').onclick = function(e){
+            console.log(e) 
+            console.log(e.offsetX/260)
+            audio.currentTime = (e.offsetX/260) * audio.duration
+        }
+
+
+        $('.previous').onclick = function(e){
+            e.preventDefault()
+            currentIndex = ((--currentIndex) + musiclist.length) % musiclist.length
+            musicOnload(musiclist[currentIndex])
+
+        }
+
+
+       
+
+        function getmusiclist(callback){
+        var xhr = new XMLHttpRequest()
+        xhr.open('GET', '/music.json',true)
+        xhr.onload = function(){
+            if ((xhr.status>=200 && xhr.status<300)|| xhr.status ===304  ){  
+                callback(JSON.parse(this.responseText))             
+            }
+            else{
+                console.log('获取数据失败')
+            }
+        }
+        xhr.onerror = function(){
+            console.log('网络异常')
+        }
+        xhr.send()
+        }
+
+        function musicOnload(musicObj){
+            console.log('begin play',musicObj)
+            $('.music-info .music-name').innerText = musicObj.name
+            $('.music-info .music-author').innerText = musicObj.author
+            $('.cover').style.backgroundImage = 'url('+ musicObj.img + ')'
+
+            audio.src =  musicObj.src
+
+        }
+    
+    
+    
+    
+    
+    
+    </script>
+
+    
+
+
+
+
+</body>
+</html>
